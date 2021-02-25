@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/github/license/tomas-ramos21/Fries?color=purple)
 ![Version](https://img.shields.io/github/manifest-json/v/tomas-ramos21/Fries?color=purple)
 
-<img src="https://i.imgur.com/DLwf6Qe.png" width="256" height="256">
+<img src="/img/fries.png" width="275" height="275">
 
 </div>
 
