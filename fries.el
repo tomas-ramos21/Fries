@@ -57,32 +57,45 @@
   :group 'fries
   :type 'string)
 
-(defvar jar-dir nil
-   "Will be assigned the path to closest target dir.")
+(defvar buffer-lines nil)
 
-(defvar package-name nil
-  "Will be assgined the name of the current package.")
+(defun fries-get-buffer-package(keyword)
+  "Obtain the word after KEYWORD of the current buffer's code."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((flag nil))
+      (while (and (not (eq (point) (point-max)))
+                  (eq flag nil))
+        (if (string= (word-at-point) keyword)
+            (set 'flag t)
+            (forward-word)))
+      (forward-word)
+      (replace-regexp-in-string ";"
+                                ""
+                                (buffer-substring-no-properties
+                                 (point)
+                                 (point-at-eol))))))
 
-(defun fries-get-buffer-package()
-  "Obtain the package of the current buffer's code."
-  (setq lines (split-string (buffer-string) "\n"))
-  (setq package-name nil)
-  (while (and (not (eq lines nil))
-              (eq package-name nil))
-    (setq words (split-string (car lines) " "))
-    (while (and (not (eq words nil))
-                (eq package-name nil))
-      (if (string= (car words) fries-package-keyword)
-          (set 'package-name (car (cdr words))))
-      (setq words (cdr words))
-      (setq lines (cdr lines)))))
+(defun fries-get-buffer-class(keyword)
+  "Obtain the word after KEYWORD of the current buffer's code."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((flag nil))
+      (while (and (not (eq (point) (point-max)))
+                  (eq flag nil))
+        (if (string= (word-at-point) keyword)
+            (set 'flag t)
+            (forward-word)))
+      (forward-word)
+      (word-at-point))))
 
 (defun fries()
   "Documentation string."
   (interactive)
-  (fries-get-buffer-package)
-  (message "Package: %s" )
-  (set 'jar-dir (locate-dominating-file (pwd) fries-target-dir)))
+  (let ((package (replace-regexp-in-string " " "" (fries-get-buffer-package "package")))
+        (class (replace-regexp-in-string " " "" (fries-get-buffer-class "class")))
+        (jar-dir (locate-dominating-file (pwd) fries-target-dir)))
+    (message "Package: %s | Class: %s | JAR Dir: %s" package class jar-dir)))
 
 (provide 'fries)
 ;;; fries.el ends here
