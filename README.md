@@ -1,6 +1,6 @@
 <div align="center">
   
-# Emacs Scala Disassembler  
+# Fries Disassembler  
 
 ![Latest commit](https://img.shields.io/github/last-commit/tomas-ramos21/Fries/main?style=flat)
 ![License](https://img.shields.io/github/license/tomas-ramos21/Fries?color=purple)
