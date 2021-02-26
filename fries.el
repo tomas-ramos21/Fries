@@ -53,7 +53,7 @@
   :type 'string)
 
 (defcustom fries-javap-command "javap -c -classpath"
-  "Javap command and flags use for disassembly."
+  "Javap command and flags used for disassembly."
   :group 'fries
   :type 'string)
 
@@ -71,15 +71,29 @@
             (forward-word)))
       (car (split-string word ";")))))
 
-(defun fries-get-byte-code(package class jar-dir)
-  "Execute the javap command using PACKAGE, CLASS at JAR-DIR and display 'byte-code' in the new buffer."
+(defun fries-get-jar-path(jar-dir)
+  "Locate the JAR file within JAR-DIR or it's sub-directories."
+  (let ((files (directory-files-recursively jar-dir "\\.jar$")))
+    (car files)))
+
+(defun fries-get-byte-code(package class jar-path)
+  "Execute the javap command using PACKAGE, CLASS at JAR-PATH and display 'byte-code' in the new buffer."
   (save-buffer)
   (let ((presentation-buffer (get-buffer-create fries-bytecode-buffer))
-        (disassembled-code (shell-command-to-string (concat fries-javap-command " " ))))
-    (set-buffer presentation-buffer)
+        (current-dir (file-name-directory (car (split-string (buffer-file-name) " ")))))
+    (if (eq nil (get-buffer-window fries-bytecode-buffer))
+        (select-window (split-window-below))
+        (select-window (get-buffer-window fries-bytecode-buffer)))
+    (switch-to-buffer presentation-buffer)
+    (cd (file-name-directory jar-path))
     (save-excursion
       (goto-char (point-min))
-      (insert ADD-CODE-HERE))))
+      (erase-buffer)
+      (with-current-buffer presentation-buffer (javap-mode))
+      (with-current-buffer presentation-buffer (linum-mode))
+      (insert (shell-command-to-string
+               (concat fries-javap-command " " (file-name-nondirectory jar-path) " "
+                       (concat (replace-regexp-in-string "\\." "/" package) "/" class)))))))
 
 (defun fries()
   "Show the Java 'byte-code' of the class under the cursor in a new buffer."
@@ -88,14 +102,13 @@
         (package (fries-get-package))
         (class (word-at-point))
         (jar-dir (locate-dominating-file (pwd) fries-target-dir)))
-    (message "%s" extension)
     (cond
      ((or (eq extension nil)
          (and (not (string= extension "java"))
               (not (string= extension "scala")))) (message "Fries: Not a Java or Scala file."))
      ((eq class nil) (message "Fries: No class detected under the cursor."))
      ((eq jar-dir nil) (message "Fries: No target directory was found. Create one or change the name of the directory containg the JAR."))
-     (t (message "Package: %s | Class: %s | JAR Dir: %s" package class jar-dir)))))
+     (t (fries-get-byte-code package class (fries-get-jar-path jar-dir))))))
 
 (provide 'fries)
 ;;; fries.el ends here
