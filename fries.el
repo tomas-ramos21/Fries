@@ -57,9 +57,8 @@
   :group 'fries
   :type 'string)
 
-
 (defun fries-get-package()
-  "Obtain the package of the code in the current buffer if there is one."
+  "Locate the 'package' keyword and obtain package of the code in the buffer."
   (save-excursion
     (goto-char (point-min))
     (let ((word nil))
@@ -107,7 +106,7 @@
          (and (not (string= extension "java"))
               (not (string= extension "scala")))) (message "Fries: Not a Java or Scala file."))
      ((eq class nil) (message "Fries: No class detected under the cursor."))
-     ((eq jar-dir nil) (message "Fries: No target directory was found. Create one or change the name of the directory containg the JAR."))
+     ((eq jar-dir nil) (message "Fries: No target directory was found. Create one or change the name of the directory containing the JAR."))
      (t (fries-get-byte-code package class (fries-get-jar-path jar-dir))))))
 
 (provide 'fries)
