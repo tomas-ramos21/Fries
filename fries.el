@@ -52,50 +52,50 @@
   :group 'fries
   :type 'string)
 
-(defcustom fries-javap-command "javap -c"
+(defcustom fries-javap-command "javap -c -classpath"
   "Javap command and flags use for disassembly."
   :group 'fries
   :type 'string)
 
-(defvar buffer-lines nil)
 
-(defun fries-get-buffer-package(keyword)
-  "Obtain the word after KEYWORD of the current buffer's code."
+(defun fries-get-package()
+  "Obtain the package of the code in the current buffer if there is one."
   (save-excursion
     (goto-char (point-min))
-    (let ((flag nil))
-      (while (and (not (eq (point) (point-max)))
-                  (eq flag nil))
-        (if (string= (word-at-point) keyword)
-            (set 'flag t)
+    (let ((word nil))
+      (while (and (not (eobp)) (eq word nil))
+        (if (string= (word-at-point) "package")
+            (set' word (progn (save-excursion
+                                (forward-word)
+                                (buffer-substring-no-properties (point) (point-at-eol)))))
             (forward-word)))
-      (forward-word)
-      (replace-regexp-in-string ";"
-                                ""
-                                (buffer-substring-no-properties
-                                 (point)
-                                 (point-at-eol))))))
+      (car (split-string word ";")))))
 
-(defun fries-get-buffer-class(keyword)
-  "Obtain the word after KEYWORD of the current buffer's code."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((flag nil))
-      (while (and (not (eq (point) (point-max)))
-                  (eq flag nil))
-        (if (string= (word-at-point) keyword)
-            (set 'flag t)
-            (forward-word)))
-      (forward-word)
-      (word-at-point))))
+(defun fries-get-byte-code(package class jar-dir)
+  "Execute the javap command using PACKAGE, CLASS at JAR-DIR and display 'byte-code' in the new buffer."
+  (save-buffer)
+  (let ((presentation-buffer (get-buffer-create fries-bytecode-buffer))
+        (disassembled-code (shell-command-to-string (concat fries-javap-command " " ))))
+    (set-buffer presentation-buffer)
+    (save-excursion
+      (goto-char (point-min))
+      (insert ADD-CODE-HERE))))
 
 (defun fries()
-  "Documentation string."
+  "Show the Java 'byte-code' of the class under the cursor in a new buffer."
   (interactive)
-  (let ((package (replace-regexp-in-string " " "" (fries-get-buffer-package "package")))
-        (class (replace-regexp-in-string " " "" (fries-get-buffer-class "class")))
+  (let ((extension (file-name-extension (buffer-file-name)))
+        (package (fries-get-package))
+        (class (word-at-point))
         (jar-dir (locate-dominating-file (pwd) fries-target-dir)))
-    (message "Package: %s | Class: %s | JAR Dir: %s" package class jar-dir)))
+    (message "%s" extension)
+    (cond
+     ((or (eq extension nil)
+         (and (not (string= extension "java"))
+              (not (string= extension "scala")))) (message "Fries: Not a Java or Scala file."))
+     ((eq class nil) (message "Fries: No class detected under the cursor."))
+     ((eq jar-dir nil) (message "Fries: No target directory was found. Create one or change the name of the directory containg the JAR."))
+     (t (message "Package: %s | Class: %s | JAR Dir: %s" package class jar-dir)))))
 
 (provide 'fries)
 ;;; fries.el ends here
