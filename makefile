@@ -1,12 +1,12 @@
 EMACS ?= emacs
 BATCH := $(EMACS) $(EFLAGS) -batch -q -no-site-file -L .
 
-all: scala-disassembler.elc
+all: fries.elc
 
 clean:
-	$(RM) *.elc
+	@rm *.elc
 
 %.elc: %.el
-        (BATCH) --eval '(byte-compile-file "$<")'
+	$(BATCH) --eval '(byte-compile-file "$<")'
 
-.PHONY: check clean
+.PHONY: clean

@@ -6,7 +6,7 @@
 ;; Maintainer: Tomas Ramos <tomas.ramosv21@gmail.com>
 ;; Created: February 25, 2021
 ;; Modified: February 25, 2021
-;; Version: 0.0.1
+;; Version: 0.1.0
 ;; Keywords: tools
 ;; Homepage: https://github.com/tomas-ramos21/Fries
 ;; Package-Requires: ((emacs "24.3"))
@@ -28,7 +28,15 @@
 ;;
 ;;; Commentary:
 ;;
-;;  Description
+;;  Fries lets you see the disassembled Java "byte-code" of the class under
+;;  under the cursor in a new buffer. If you have "javap-mode" installed it
+;;  will even highlight the dissassembled code for you.
+;;
+;;  It works by detecting the package of the class, the closest "target" directory,
+;;  and then the JAR file within it or it's sub-directories. After that it will
+;;  use the shell command "javap" along with some arguments to obtain the code.
+;;  If no classes are found with the name under the cursor it will show you the
+;;  error message provided by the "javap" command.
 ;;
 ;;; Code:
 
@@ -72,13 +80,18 @@
   :group 'fries
   :type 'string)
 
+(defcustom fries-no-jars-found "Fries: No JAR files were found. Did you compile?"
+  "Message displayed when no JAR files are found."
+  :group 'fries
+  :type 'string)
+
 (defun fries-get-package()
   "Locate the 'package' keyword and obtain package of the code in the buffer."
   (save-excursion
     (goto-char (point-min))
     (let ((word nil))
       (while (and (not (eobp)) (eq word nil))
-        (if (string= (word-at-point) "package")
+        (if (string= (current-word) "package")
             (set' word (progn (save-excursion
                                 (forward-word)
                                 (buffer-substring-no-properties (point) (point-at-eol)))))
@@ -96,29 +109,37 @@
   (save-buffer)
   (let ((presentation-buffer (get-buffer-create fries-bytecode-buffer))
         (current-dir (file-name-directory (car (split-string (buffer-file-name) " ")))))
-    (if (eq nil (get-buffer-window fries-bytecode-buffer))
-        (select-window (split-window-below))
-        (select-window (get-buffer-window fries-bytecode-buffer)))
-    (switch-to-buffer presentation-buffer)
-    (cd (file-name-directory jar-path))
-    (save-excursion
-      (goto-char (point-min))
-      (erase-buffer)
-      (with-current-buffer presentation-buffer (javap-mode))
-      (with-current-buffer presentation-buffer (linum-mode))
-      (if (eq package nil)
-          (insert (shell-command-to-string
-                   (concat fries-javap-command " " (file-name-nondirectory jar-path) " " class)))
-          (insert (shell-command-to-string
-                   (concat fries-javap-command " " (file-name-nondirectory jar-path) " "
-                           (concat (replace-regexp-in-string "\\." "/" package) "/" class))))))))
+    (if (eq jar-path nil)
+        (message fries-no-jars-found)
+        (progn
+          (if (eq nil (get-buffer-window fries-bytecode-buffer))
+              (select-window (split-window-below))
+              (select-window (get-buffer-window fries-bytecode-buffer)))
+          (switch-to-buffer presentation-buffer)
+          (cd (file-name-directory jar-path))
+          (save-excursion
+            (goto-char (point-min))
+            (erase-buffer)
+            (if (not (eq nil (symbol-file 'javap-mode)))
+                (with-current-buffer presentation-buffer (javap-mode)))
+            (with-current-buffer presentation-buffer (linum-mode))
+            (if (eq package nil)
+                (insert (shell-command-to-string
+                         (concat fries-javap-command " " (file-name-nondirectory jar-path) " " class)))
+                (insert (shell-command-to-string
+                         (concat fries-javap-command " " (file-name-nondirectory jar-path) " "
+                                 (concat (replace-regexp-in-string "\\." "/" package) "/" class)))))
+            (goto-char (point-min))
+            (while (not (eobp))
+              (insert " ")
+              (forward-line)))))))
 
 (defun fries()
   "Show the Java 'byte-code' of the class under the cursor in a new buffer."
   (interactive)
   (let ((extension (file-name-extension (buffer-file-name)))
         (package (fries-get-package))
-        (class (word-at-point))
+        (class (current-word))
         (jar-dir (locate-dominating-file (pwd) fries-target-dir)))
     (cond
      ((or (eq extension nil)
