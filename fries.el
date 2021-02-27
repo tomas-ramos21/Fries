@@ -57,6 +57,21 @@
   :group 'fries
   :type 'string)
 
+(defcustom fries-unsupported-file "Fries: Not a Java or Scala file."
+  "Message displayed for wrong file extension."
+  :group 'fries
+  :type 'string)
+
+(defcustom fries-no-class-under-cursor "Fries: No class detected under the cursor."
+  "Message displayed when no text is found under the cursor."
+  :group 'fries
+  :type 'string)
+
+(defcustom fries-target-dir-not-found "Fries: No target directory was found. Create one or change the name of the directory containing the JAR."
+  "Message displayed when the JAR directory or one of it's parents is not found."
+  :group 'fries
+  :type 'string)
+
 (defun fries-get-package()
   "Locate the 'package' keyword and obtain package of the code in the buffer."
   (save-excursion
@@ -104,9 +119,9 @@
     (cond
      ((or (eq extension nil)
          (and (not (string= extension "java"))
-              (not (string= extension "scala")))) (message "Fries: Not a Java or Scala file."))
-     ((eq class nil) (message "Fries: No class detected under the cursor."))
-     ((eq jar-dir nil) (message "Fries: No target directory was found. Create one or change the name of the directory containing the JAR."))
+              (not (string= extension "scala")))) (message fries-unsupported-file))
+     ((eq class nil) (message fries-no-class-under-cursor))
+     ((eq jar-dir nil) (message fries-target-dir-not-found))
      (t (fries-get-byte-code package class (fries-get-jar-path jar-dir))))))
 
 (provide 'fries)
