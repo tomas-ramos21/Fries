@@ -83,7 +83,8 @@
                                 (forward-word)
                                 (buffer-substring-no-properties (point) (point-at-eol)))))
             (forward-word)))
-      (car (split-string word ";")))))
+      (if (not (eq word nil))
+          (car (split-string word ";"))))))
 
 (defun fries-get-jar-path(jar-dir)
   "Locate the JAR file within JAR-DIR or it's sub-directories."
@@ -105,9 +106,12 @@
       (erase-buffer)
       (with-current-buffer presentation-buffer (javap-mode))
       (with-current-buffer presentation-buffer (linum-mode))
-      (insert (shell-command-to-string
-               (concat fries-javap-command " " (file-name-nondirectory jar-path) " "
-                       (concat (replace-regexp-in-string "\\." "/" package) "/" class)))))))
+      (if (eq package nil)
+          (insert (shell-command-to-string
+                   (concat fries-javap-command " " (file-name-nondirectory jar-path) " " class)))
+          (insert (shell-command-to-string
+                   (concat fries-javap-command " " (file-name-nondirectory jar-path) " "
+                           (concat (replace-regexp-in-string "\\." "/" package) "/" class))))))))
 
 (defun fries()
   "Show the Java 'byte-code' of the class under the cursor in a new buffer."
