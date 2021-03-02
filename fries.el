@@ -60,7 +60,7 @@
   :group 'fries
   :type 'string)
 
-(defcustom fries-javap-command "javap -l -c -p -s -constants -verbose -classpath"
+(defcustom fries-javap-command "javap -l -c -constants -verbose -classpath"
   "Javap command and flags used for disassembly."
   :group 'fries
   :type 'string)
@@ -125,10 +125,10 @@
             (with-current-buffer presentation-buffer (linum-mode))
             (if (eq package nil)
                 (insert (shell-command-to-string
-                         (concat fries-javap-command " " (file-name-nondirectory jar-path) " " class)))
+                         (concat fries-javap-command " " (file-name-nondirectory jar-path) " " class "$")))
                 (insert (shell-command-to-string
                          (concat fries-javap-command " " (file-name-nondirectory jar-path) " "
-                                 (concat (replace-regexp-in-string "\\." "/" package) "/" class)))))
+                                 (concat (replace-regexp-in-string "\\." "/" package) "/" class "$")))))
             (goto-char (point-min))
             (while (not (eobp))
               (insert " ")
