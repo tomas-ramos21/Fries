@@ -2,7 +2,7 @@
   
 # Fries Disassembler  
 
-![Latest commit](https://img.shields.io/github/last-commit/tomas-ramos21/Fries/main?style=flat)
+![Latest commit](https://img.shields.io/github/last-commit/tomas-ramos21/Fries/develop?style=flat&color=yellow)
 ![License](https://img.shields.io/github/license/tomas-ramos21/Fries?color=yellow)
 ![Version](https://img.shields.io/github/manifest-json/v/tomas-ramos21/Fries?color=yellow)
 
@@ -14,7 +14,7 @@
 Fries lets you see the disassembled Java "byte-code" of the class under the cursor in a new buffer. Heck!! If you have `javap-mode` installed it will even highlight it for you.
 
 ## How it Works
-It starts by detecting the `package` of the `class`, the closest "target" directory, and then the JAR file within it or it's sub-directories. After that it will use the shell command `javap` along with some arguments to obtain the code. If no classes are found with the name under the cursor it will show you the error message provided by the `javap` command.
+It starts by detecting if the class is in a `package`, the closest "target" directory, and then the JAR file within it or it's sub-directories. After that it will use the shell command `javap` along with some arguments to obtain the code. If no classes are found with the name under the cursor it will show you the error message provided by the `javap` command.
 
 Find below examples of the typical project directory structure that is expected by Fries.
 
