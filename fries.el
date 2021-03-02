@@ -60,7 +60,7 @@
   :group 'fries
   :type 'string)
 
-(defcustom fries-javap-command "javap -c -classpath"
+(defcustom fries-javap-command "javap -l -c -p -s -constants -verbose -classpath"
   "Javap command and flags used for disassembly."
   :group 'fries
   :type 'string)
