@@ -108,7 +108,11 @@
   "Execute the javap command using PACKAGE, CLASS at JAR-PATH and display 'byte-code' in the new buffer."
   (save-buffer)
   (let ((presentation-buffer (get-buffer-create fries-bytecode-buffer))
-        (current-dir (file-name-directory (car (split-string (buffer-file-name) " ")))))
+        (current-dir (file-name-directory (car (split-string (buffer-file-name) " "))))
+        (javap-shell-command (if (eq package nil)
+                                 (concat fries-javap-command " " (file-name-nondirectory jar-path) " " class "$")
+                                 (concat fries-javap-command " " (file-name-nondirectory jar-path) " "
+                                       (concat (replace-regexp-in-string "\\." "/" package) "/" class "$")))))
     (if (eq jar-path nil)
         (message fries-no-jars-found)
         (progn
@@ -123,12 +127,7 @@
             (if (not (eq nil (symbol-file 'javap-mode)))
                 (with-current-buffer presentation-buffer (javap-mode)))
             (with-current-buffer presentation-buffer (linum-mode))
-            (if (eq package nil)
-                (insert (shell-command-to-string
-                         (concat fries-javap-command " " (file-name-nondirectory jar-path) " " class "$")))
-                (insert (shell-command-to-string
-                         (concat fries-javap-command " " (file-name-nondirectory jar-path) " "
-                                 (concat (replace-regexp-in-string "\\." "/" package) "/" class "$")))))
+            (insert (shell-command-to-string javap-shell-command))
             (goto-char (point-min))
             (while (not (eobp))
               (insert " ")
