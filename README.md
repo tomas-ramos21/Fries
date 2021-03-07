@@ -2,7 +2,6 @@
   
 # Fries Disassembler  
 
-![Latest commit](https://img.shields.io/github/last-commit/tomas-ramos21/Fries/develop?style=flat&color=yellow)
 ![License](https://img.shields.io/github/license/tomas-ramos21/Fries?color=yellow)
 ![Version](https://img.shields.io/github/manifest-json/v/tomas-ramos21/Fries?color=yellow)
 
